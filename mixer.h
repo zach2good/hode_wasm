@@ -4,45 +4,46 @@
 
 #include "intern.h"
 
-struct MixerChannel {
-	const int16_t *ptr;
-	const int16_t *end;
-	int panL;
-	int panR;
-	uint8_t panType;
-	bool stereo;
+struct MixerChannel
+{
+    const int16_t* ptr;
+    const int16_t* end;
+    int panL;
+    int panR;
+    uint8_t panType;
+    bool stereo;
 };
 
-struct Mixer {
+struct Mixer
+{
+    static const int kPcmChannels = 32;
 
-	static const int kPcmChannels = 32;
+    void (*_lock)(int);
+    int _rate;
 
-	void (*_lock)(int);
-	int _rate;
+    MixerChannel _mixingQueue[kPcmChannels];
+    int _mixingQueueSize;
 
-	MixerChannel _mixingQueue[kPcmChannels];
-	int _mixingQueueSize;
+    Mixer();
+    ~Mixer();
 
-	Mixer();
-	~Mixer();
+    void init(int rate);
+    void fini();
 
-	void init(int rate);
-	void fini();
+    void queue(const int16_t* ptr, const int16_t* end, int panType, int panL, int panR, bool stereo);
 
-	void queue(const int16_t *ptr, const int16_t *end, int panType, int panL, int panR, bool stereo);
-
-	void mix(int16_t *buf, int len);
+    void mix(int16_t* buf, int len);
 };
 
-struct MixerLock {
-	Mixer *_mix;
-	MixerLock(Mixer *mix)
-		: _mix(mix) {
-		_mix->_lock(1);
-	}
-	~MixerLock() {
-		_mix->_lock(0);
-	}
+struct MixerLock
+{
+    Mixer* _mix;
+    MixerLock(Mixer* mix)
+    : _mix(mix)
+    {
+        _mix->_lock(1);
+    }
+    ~MixerLock() { _mix->_lock(0); }
 };
 
 #endif

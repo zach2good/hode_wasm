@@ -1,4 +1,4 @@
-# hode_wasm
+ # hode_wasm [![Build Status](https://travis-ci.com/zach2good/hode_wasm.svg?branch=master)](https://travis-ci.com/zach2good/hode_wasm)
 
 ## About
 
@@ -30,7 +30,8 @@ has been tested with.
 
 ## Running:
 
-By default the engine will try to load the files from the current directory
+By default the engine will
+try to load the files from the current directory
 and start the game from the first level.
 
 These defaults can be changed using command line switches :
