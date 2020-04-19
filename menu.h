@@ -2,6 +2,7 @@
 #ifndef MENU_H__
 #define MENU_H__
 
+#include "defs.h"
 #include "intern.h"
 
 struct Game;

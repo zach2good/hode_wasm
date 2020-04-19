@@ -18,7 +18,7 @@ target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE -g -Wall -pedantic -MMD)
 
 if(EMSCRIPTEN)
   set(CMAKE_EXECUTABLE_SUFFIX ".html")
-  target_link_libraries(${CMAKE_PROJECT_NAME} "-s WASM=1 -s USE_SDL=2 -s FULL_ES2=1 -s ALLOW_MEMORY_GROWTH=1 -s TOTAL_MEMORY=78643200 --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/HOD --emrun")
+  target_link_libraries(${CMAKE_PROJECT_NAME} "-s WASM=1 -s USE_SDL=2 -s FULL_ES2=1 -s ALLOW_MEMORY_GROWTH=1 -s TOTAL_MEMORY=78643200 --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/HOD")
 else() # Assume OSX
   set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
   find_package(SDL2 REQUIRED)

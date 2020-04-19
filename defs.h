@@ -6,6 +6,8 @@
 #ifndef DEFS_H__
 #define DEFS_H__
 
+#include "intern.h"
+
 enum
 {
     kPosTopScreen = 0,

@@ -7,6 +7,7 @@
 #define RESOURCE_H__
 
 #include "defs.h"
+#include "fileio.h"
 #include "intern.h"
 
 struct DatHdr
