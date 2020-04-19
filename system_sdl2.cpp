@@ -3,9 +3,11 @@
  * Copyright (C) 2009-2011 Gregory Montoir (cyx@users.sourceforge.net)
  */
 
-#include <SDL.h>
-#include <stdarg.h>
-#include <math.h>
+#include <SDL2/SDL.h>
+
+#include <cstdarg>
+#include <cmath>
+
 #include "scaler.h"
 #include "system.h"
 #include "util.h"
@@ -56,7 +58,6 @@ struct System_SDL2 : System {
 	int _keyMappingsCount;
 	AudioCallback _audioCb;
 	uint8_t _gammaLut[256];
-	SDL_GameController *_controller;
 	SDL_Joystick *_joystick;
 
 	System_SDL2();
@@ -95,14 +96,14 @@ System *const g_system = &system_sdl2;
 System_SDL2::System_SDL2() :
 	_offscreenLut(0), _offscreenRgb(0),
 	_window(0), _renderer(0), _texture(0), _backgroundTexture(0), _fmt(0), _widescreenTexture(0),
-	_controller(0), _joystick(0) {
+	_joystick(0) {
 	for (int i = 0; i < 256; ++i) {
 		_gammaLut[i] = i;
 	}
 }
 
 void System_SDL2::init(const char *title, int w, int h, bool fullscreen, bool widescreen, bool yuv) {
-	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER);
+	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK);
 	SDL_ShowCursor(SDL_DISABLE);
 	setupDefaultKeyMappings();
 	memset(&inp, 0, sizeof(inp));
@@ -123,25 +124,6 @@ void System_SDL2::init(const char *title, int w, int h, bool fullscreen, bool wi
 	memset(_offscreenLut, 0, offscreenSize);
 	prepareScaledGfx(title, fullscreen, widescreen, yuv);
 	_joystick = 0;
-	_controller = 0;
-	const int count = SDL_NumJoysticks();
-	if (count > 0) {
-		SDL_GameControllerAddMappingsFromFile("gamecontrollerdb.txt");
-		for (int i = 0; i < count; ++i) {
-			if (SDL_IsGameController(i)) {
-				_controller = SDL_GameControllerOpen(i);
-				if (_controller) {
-					fprintf(stdout, "Using controller '%s'\n", SDL_GameControllerName(_controller));
-					break;
-				}
-			}
-			_joystick = SDL_JoystickOpen(i);
-			if (_joystick) {
-				fprintf(stdout, "Using joystick '%s'", SDL_JoystickName(_joystick));
-				break;
-			}
-		}
-	}
 }
 
 void System_SDL2::destroy() {
@@ -173,11 +155,6 @@ void System_SDL2::destroy() {
 	if (_window) {
 		SDL_DestroyWindow(_window);
 		_window = 0;
-	}
-
-	if (_controller) {
-		SDL_GameControllerClose(_controller);
-		_controller = 0;
 	}
 	if (_joystick) {
 		SDL_JoystickClose(_joystick);
@@ -338,8 +315,9 @@ void System_SDL2::copyRect(int x, int y, int w, int h, const uint8_t *buf, int p
 }
 
 void System_SDL2::copyYuv(int w, int h, const uint8_t *y, int ypitch, const uint8_t *u, int upitch, const uint8_t *v, int vpitch) {
-	if (_backgroundTexture) {
-		SDL_UpdateYUVTexture(_backgroundTexture, 0, y, ypitch, u, upitch, v, vpitch);
+	if (_backgroundTexture)
+	{
+	    SDL_UpdateYUVTexture(_backgroundTexture, 0, y, ypitch, u, upitch, v, vpitch);
 	}
 }
 
@@ -507,141 +485,6 @@ void System_SDL2::processEvents() {
 						pad.mask |= SYS_INP_SHOOT;
 					} else {
 						pad.mask &= ~SYS_INP_SHOOT;
-					}
-					break;
-				}
-			}
-			break;
-		case SDL_CONTROLLERAXISMOTION:
-			if (_controller) {
-				switch (ev.caxis.axis) {
-				case SDL_CONTROLLER_AXIS_LEFTX:
-				case SDL_CONTROLLER_AXIS_RIGHTX:
-					if (ev.caxis.value < -kJoystickCommitValue) {
-						pad.mask |= SYS_INP_LEFT;
-#ifdef __vita__
-						axis[0] = true;
-					} else if (axis[0]) {
-						axis[0] = false;
-#else
-					} else {
-#endif
-						pad.mask &= ~SYS_INP_LEFT;
-					}
-					if (ev.caxis.value > kJoystickCommitValue) {
-						pad.mask |= SYS_INP_RIGHT;
-#ifdef __vita__
-						axis[1] = true;
-					} else if (axis[1]) {
-						axis[1] = false;
-#else
-					} else {
-#endif
-						pad.mask &= ~SYS_INP_RIGHT;
-					}
-					break;
-				case SDL_CONTROLLER_AXIS_LEFTY:
-				case SDL_CONTROLLER_AXIS_RIGHTY:
-					if (ev.caxis.value < -kJoystickCommitValue) {
-						pad.mask |= SYS_INP_UP;
-#ifdef __vita__
-						axis[2] = true;
-					} else if (axis[2]) {
-						axis[2] = false;
-#else
-					} else {
-#endif
-						pad.mask &= ~SYS_INP_UP;
-					}
-					if (ev.caxis.value > kJoystickCommitValue) {
-						pad.mask |= SYS_INP_DOWN;
-#ifdef __vita__
-						axis[3] = true;
-					} else if (axis[3]) {
-						axis[3] = false;
-#else
-					} else {
-#endif
-						pad.mask &= ~SYS_INP_DOWN;
-					}
-					break;
-#ifdef __SWITCH__
-				case SDL_CONTROLLER_AXIS_TRIGGERRIGHT:
-					if (ev.caxis.value > 0) {
-						pad.mask |= SYS_INP_RUN;
-					} else {
-						pad.mask &= ~SYS_INP_RUN;
-					}
-					break;
-#endif
-				}
-			}
-			break;
-		case SDL_CONTROLLERBUTTONDOWN:
-		case SDL_CONTROLLERBUTTONUP:
-			if (_controller) {
-				const bool pressed = (ev.cbutton.state == SDL_PRESSED);
-				switch (ev.cbutton.button) {
-				case SDL_CONTROLLER_BUTTON_A:
-					if (pressed) {
-						pad.mask |= SYS_INP_RUN;
-					} else {
-						pad.mask &= ~SYS_INP_RUN;
-					}
-					break;
-				case SDL_CONTROLLER_BUTTON_B:
-					if (pressed) {
-						pad.mask |= SYS_INP_JUMP;
-					} else {
-						pad.mask &= ~SYS_INP_JUMP;
-					}
-					break;
-				case SDL_CONTROLLER_BUTTON_X:
-					if (pressed) {
-						pad.mask |= SYS_INP_SHOOT;
-					} else {
-						pad.mask &= ~SYS_INP_SHOOT;
-					}
-					break;
-				case SDL_CONTROLLER_BUTTON_Y:
-					if (pressed) {
-						pad.mask |= SYS_INP_SHOOT | SYS_INP_RUN;
-					} else {
-						pad.mask &= ~SYS_INP_SHOOT & ~SYS_INP_RUN;
-					}
-					break;
-				case SDL_CONTROLLER_BUTTON_BACK:
-					inp.skip = pressed;
-					break;
-				case SDL_CONTROLLER_BUTTON_START:
-					inp.exit = pressed;
-					break;
-				case SDL_CONTROLLER_BUTTON_DPAD_UP:
-					if (pressed) {
-						pad.mask |= SYS_INP_UP;
-					} else {
-						pad.mask &= ~SYS_INP_UP;
-					}
-					break;
-				case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
-					if (pressed) {
-						pad.mask |= SYS_INP_DOWN;
-					} else {
-						pad.mask &= ~SYS_INP_DOWN;
-					}
-					break;
-				case SDL_CONTROLLER_BUTTON_DPAD_LEFT:
-					if (pressed) {
-						pad.mask |= SYS_INP_LEFT;
-					} else {
-						pad.mask &= ~SYS_INP_LEFT;
-					}
-					break;
-				case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
-					if (pressed) {
-						pad.mask |= SYS_INP_RIGHT;
-					} else {
-						pad.mask &= ~SYS_INP_RIGHT;
 					}
 					break;
 				}

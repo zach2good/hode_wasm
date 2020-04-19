@@ -2090,6 +2090,12 @@ void Game::drawScreen() {
 	}
 }
 
+static void gameStep(void* arg)
+{
+    auto g = static_cast<Game*>(arg);
+    g->levelMainLoop();
+}
+
 void Game::mainLoop(int &level, int &checkpoint, bool levelChanged) {
 	if (_loadingScreenEnabled) {
 		displayLoadingScreen();
@@ -2159,7 +2165,11 @@ void Game::mainLoop(int &level, int &checkpoint, bool levelChanged) {
 	restartLevel();
 	do {
 		const int frameTimeStamp = g_system->getTimeStamp() + _frameMs;
-		levelMainLoop();
+#ifdef EMSCRIPTEN
+		emscripten_set_main_loop_arg(gameStep, this, -1, 1);
+#else
+        gameStep(this);
+#endif
 		if (g_system->inp.quit) {
 			break;
 		}

@@ -4,3 +4,6 @@ build
 hode
 hode.ini
 setup.cfg
+
+cmake-build-*
+HOD/*

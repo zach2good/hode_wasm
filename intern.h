@@ -112,4 +112,8 @@ inline bool rect_intersects(int left1, int top1, int right1, int bottom1, int le
 	return right2 >= left1 && left2 <= right1 && bottom2 >= top1 && top2 <= bottom1;
 }
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 #endif // INTERN_H__

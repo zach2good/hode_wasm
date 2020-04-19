@@ -3,9 +3,10 @@
  * Copyright (C) 2009-2011 Gregory Montoir (cyx@users.sourceforge.net)
  */
 
-#include <SDL.h>
+#include <SDL2/SDL.h>
 #include <getopt.h>
 #include <sys/stat.h>
+#include <iostream>
 
 #include "3p/inih/ini.h"
 
@@ -18,17 +19,8 @@
 #include "system.h"
 #include "video.h"
 
-#ifdef __SWITCH__
-#include <switch.h>
-#endif
-
 static const char *_title = "Heart of Darkness";
-
-#ifdef __vita__
-static const char *_configIni = "ux0:data/hode/hode.ini";
-#else
 static const char *_configIni = "hode.ini";
-#endif
 
 static const char *_usage =
 	"hode - Heart of Darkness Interpreter\n"
@@ -40,10 +32,10 @@ static const char *_usage =
 ;
 
 static bool _fullscreen = false;
-static bool _widescreen = false;
+static bool _widescreen = true;
 
 static const bool _runBenchmark = false;
-static bool _runMenu = true;
+static bool _runMenu = false;
 
 static void lockAudio(int flag) {
 	if (flag) {
@@ -128,17 +120,8 @@ static int handleConfigIni(void *userdata, const char *section, const char *name
 }
 
 int main(int argc, char *argv[]) {
-#ifdef __SWITCH__
-	socketInitializeDefault();
-	nxlinkStdio();
-#endif
-#ifdef __vita__
-	const char *dataPath = "ux0:data/hode";
-	const char *savePath = "ux0:data/hode";
-#else
 	char *dataPath = 0;
 	char *savePath = 0;
-#endif
 	int level = 0;
 	int checkpoint = 0;
 	bool resume = true; // resume game from 'setup.cfg'
@@ -203,11 +186,14 @@ int main(int argc, char *argv[]) {
 			return -1;
 		}
 	}
-	Game *g = new Game(dataPath ? dataPath : _defaultDataPath, savePath ? savePath : _defaultSavePath, cheats);
+
+	Game* g = new Game(dataPath ? dataPath : _defaultDataPath, savePath ? savePath : _defaultSavePath, cheats);
 	ini_parse(_configIni, handleConfigIni, g);
+
 	if (_runBenchmark) {
 		g->benchmarkCpu();
 	}
+
 	// load setup.dat and detects if these are PC or PSX datafiles
 	g->_res->loadSetupDat();
 	const bool isPsx = g->_res->_isPsx;
@@ -216,15 +202,17 @@ int main(int argc, char *argv[]) {
 	g->loadSetupCfg(resume);
 	bool runGame = true;
 	g->_video->init(isPsx);
+
 	if (_runMenu && resume && !isPsx) {
 		Menu *m = new Menu(g, g->_paf, g->_res, g->_video);
 		runGame = m->mainLoop();
 		delete m;
 	}
+
 	if (runGame && !g_system->inp.quit) {
 		bool levelChanged = false;
 		do {
-			g->mainLoop(level, checkpoint, levelChanged);
+            g->mainLoop(level, checkpoint, levelChanged);
 			// do not save progress when game is started from a specific level/checkpoint
 			if (resume) {
 				g->saveSetupCfg();
@@ -234,16 +222,13 @@ int main(int argc, char *argv[]) {
 			levelChanged = true;
 		} while (!g_system->inp.quit && level < kLvl_test);
 	}
+
 	g_system->stopAudio();
 	g->_mix.fini();
 	g_system->destroy();
 	delete g;
-#ifndef __vita__
 	free(dataPath);
 	free(savePath);
-#endif
-#ifdef __SWITCH__
-	socketExit();
-#endif
+
 	return 0;
 }

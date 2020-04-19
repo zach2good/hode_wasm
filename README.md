@@ -1,18 +1,21 @@
+# hode_wasm
 
-hode README
-Release version: 0.2.8
--------------------------------------------------------------------------------
+## About
 
+**hode_wasm**
 
-About:
-------
+hode_wasm is a small hobby project to get hode running in the browser, using Emscripten.
+
+**hode**
 
 hode is a reimplementation of the engine used by the game 'Heart of Darkness'
 developed by Amazing Studio.
 
+## Progress
 
-Datafiles:
-----------
+![alt text](img/img1.png)
+
+## Datafiles
 
 The original datafiles from the Windows releases (Demo or CD) are required.
 
@@ -25,9 +28,7 @@ The original datafiles from the Windows releases (Demo or CD) are required.
 See also the 'RELEASES.yaml' file for a list of game versions this program
 has been tested with.
 
-
-Running:
---------
+## Running:
 
 By default the engine will try to load the files from the current directory
 and start the game from the first level.
@@ -44,30 +45,22 @@ Display and engine settings can be configured in the 'hode.ini' file.
 
 Game progress is saved in 'setup.cfg', similar to the original engine.
 
-
-Status:
--------
+## Status
 
 Settings submenu is not implemented.
 
 PSX datafiles can be used, but menu and videos are missing.
 
-
-Credits:
---------
+## Credits
 
 All the team at Amazing Studio for possibly the best cinematic platformer ever
 developed.
 
+The originall author of this project: Gregory Montoir (http://cyxdown.free.fr/hode/)
 
-Contact:
---------
+Forked and then split from usineur's port (https://github.com/usineur/hode)
 
-Gregory Montoir, cyx@users.sourceforge.net
-
-
-URLs:
------
+## URLs:
 
 [1] https://www.mobygames.com/game/heart-of-darkness
 [2] http://heartofdarkness.ca/
